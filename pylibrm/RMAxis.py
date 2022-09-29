@@ -19,8 +19,7 @@ class Axis(object):
         if self._is_debug:
             print(v)
 
-    @staticmethod
-    def wait(time_in_ms):
+    def wait(self, time_in_ms):
         time.sleep(time_in_ms / 1000.0)
 
     def wait_for_reached(self, timeout):
@@ -58,7 +57,7 @@ class Axis(object):
     def create_modbus_rtu(port, slave_id, baudrate=115200):
         client = ModbusClient(method="rtu", port=port, stopbits=1, timeout=0.01,
                               bytesize=8, parity='N', baudrate=baudrate, retries=10, strict=False)
-        client.connect()
+        connection = client.connect()
         return Axis(client, slave_id)
 
     def read_int32(self, address, func):
@@ -152,7 +151,7 @@ class Axis(object):
         command["acceleration"] = 0
         command["deceleration"] = 0
         command["band"] = force_band
-        command["push_force"] = force
+        command["push_force"] = force / self.get_force_scale()
         command["push_distance"] = distance
         command["delay"] = force_check_time
         command["next_command_index"] = -1
@@ -205,7 +204,13 @@ class Axis(object):
         return self.read_input_float(0)
 
     def force_sensor(self):
-        return self.read_input_float(18)
+        return self.read_input_float(18) * self.get_force_scale()
+
+    def set_force_scale(self,force_factor):
+        self.write_holding_int32(5000+20*32, int(force_factor * 1000.0))
+
+    def get_force_scale(self):
+        return self.read_holding_int32(5000+20*32) / 1000.0
 
     def close(self):
         self._client.close()
