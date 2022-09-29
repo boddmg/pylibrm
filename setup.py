@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pylibrm",
-    version="0.0.1",
+    version="0.0.5",
     author="Alan Huang",
     author_email="alanhuang@rmaxis.com",
     description="Python lib for RobustMotion axis",

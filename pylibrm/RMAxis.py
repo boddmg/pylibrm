@@ -19,7 +19,8 @@ class Axis(object):
         if self._is_debug:
             print(v)
 
-    def wait(self, time_in_ms):
+    @staticmethod
+    def wait(time_in_ms):
         time.sleep(time_in_ms / 1000.0)
 
     def wait_for_reached(self, timeout):
@@ -57,7 +58,7 @@ class Axis(object):
     def create_modbus_rtu(port, slave_id, baudrate=115200):
         client = ModbusClient(method="rtu", port=port, stopbits=1, timeout=0.01,
                               bytesize=8, parity='N', baudrate=baudrate, retries=10, strict=False)
-        connection = client.connect()
+        client.connect()
         return Axis(client, slave_id)
 
     def read_int32(self, address, func):
@@ -91,7 +92,7 @@ class Axis(object):
         self.write_int32(address, value)
 
     def write_coil(self, address, value):
-        self._client.write_coil(address, value)
+        self._client.write_coil(address, value, unit=self._slave_id)
 
     def trig_coil(self, address):
         self.write_coil(address, False)
@@ -189,6 +190,10 @@ class Axis(object):
     def reset_error(self):
         self.write_coil(const.IO_IN_ERROR_RESET, 0)
         self.write_coil(const.IO_IN_ERROR_RESET, 1)
+
+    def reset_force(self):
+        self.write_coil(const.IO_IN_FORCE_RESET, 0)
+        self.write_coil(const.IO_IN_FORCE_RESET, 1)
 
     def set_servo_on_off(self, on_off):
         self.write_coil(const.IO_IN_SERVO, on_off)
